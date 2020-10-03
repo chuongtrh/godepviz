@@ -9,7 +9,7 @@
 *.dll
 *.so
 *.dylib
-
+godepviz
 # Test binary, built with `go test -c`
 *.test
 
