@@ -13,15 +13,16 @@ import (
 
 // Node struct
 type Node struct {
-	PkgName string  `json:"pkgname"`
-	IsRoot  bool    `json:-`
-	Parent  *Node   `json:parent`
-	Imports []*Node `json:imports`
+	PkgName  string  `json:"pkgname"`
+	IsRoot   bool    `json:-`
+	Parent   *Node   `json:parent`
+	Standard bool    `json:standard`
+	Imports  []*Node `json:imports`
 }
 
 // FindImports func
 func (node *Node) FindImports() error {
-	if node == nil {
+	if node.Standard {
 		return nil
 	}
 
@@ -32,13 +33,14 @@ func (node *Node) FindImports() error {
 		log.Fatal(fmt.Sprintf("Package %s not found", node.PkgName))
 	}
 
-	for _, imp := range imports {
-		pkgName := imp
-		// fmt.Println(pkgName)
+	for key, val := range imports {
+		pkgName := key
+		// fmt.Println(key, val)
 		childNode := &Node{
-			PkgName: pkgName,
-			IsRoot:  false,
-			Parent:  node,
+			PkgName:  pkgName,
+			IsRoot:   false,
+			Parent:   node,
+			Standard: val,
 		}
 		childNode.FindImports()
 		node.Imports = append(node.Imports, childNode)
@@ -53,6 +55,10 @@ func (node *Node) graph(buf *bytes.Buffer, edges map[string]bool) error {
 		if !ok {
 			edges[edge] = true
 			buf.WriteString(fmt.Sprintf("	\"%s\" -> \"%s\";\n", node.PkgName, imp.PkgName))
+
+			if imp.Standard {
+				buf.WriteString(fmt.Sprintf(" 	\"%s\"  [style=filled,color=palegoldenrod];\n", imp.PkgName))
+			}
 		}
 		imp.graph(buf, edges)
 	}
@@ -65,15 +71,14 @@ func (node *Node) BuildGraph() string {
 	buf := bytes.NewBuffer([]byte{})
 	buf.WriteString("digraph G {\n")
 	buf.WriteString("	 rankdir=\"LR\";\n")
-	buf.WriteString("    pad=.25;\n")
-	buf.WriteString("    ratio=fill;\n")
+	buf.WriteString("    pad=.15;\n")
+	buf.WriteString("    ratio=auto;\n")
 	buf.WriteString("    dpi=360;\n")
-
 	buf.WriteString("    node [shape=box];\n")
 
 	node.graph(buf, edges)
 
-	buf.WriteString(fmt.Sprintf(" 	\"%s\"  [style=filled];\n", node.PkgName))
+	buf.WriteString(fmt.Sprintf(" 	\"%s\"  [style=filled,color=palegreen];\n", node.PkgName))
 
 	buf.WriteString("}")
 	return buf.String()
@@ -87,8 +92,8 @@ func pkgImportURL(pkgName string) string {
 	return "https://pkg.go.dev/" + pkgName + "?tab=imports"
 }
 
-func fetchImport(pkgImportURL string, isRoot bool) ([]string, error) {
-	imports := []string{}
+func fetchImport(pkgImportURL string, isRoot bool) (map[string]bool, error) {
+	imports := make(map[string]bool)
 	var htmlContent string
 	if isRoot {
 		resp, err := http.Get(pkgImportURL)
@@ -115,13 +120,17 @@ func fetchImport(pkgImportURL string, isRoot bool) ([]string, error) {
 	}
 
 	root := soup.HTMLParse(htmlContent)
-	doc := root.Find("h2", "class", "Imports-heading")
-	if doc.Text() == "Imports" {
-		doc = root.Find("ul", "class", "Imports-list")
-		links := doc.FindAll("a")
-		for _, link := range links {
-			imports = append(imports, link.FullText())
-			// fmt.Println("fetchImport:", link.FullText())
+
+	docs := root.FindAll("h2", "class", "Imports-heading")
+	for _, doc := range docs {
+		text := doc.Text()
+		standard := text == "Standard Library Imports"
+		if text == "Imports" || text == "Standard Library Imports" {
+			temp := doc.FindNextElementSibling()
+			links := temp.FindAll("a")
+			for _, link := range links {
+				imports[link.FullText()] = standard
+			}
 		}
 	}
 	return imports, nil
