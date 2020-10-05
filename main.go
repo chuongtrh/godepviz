@@ -21,7 +21,10 @@ func main() {
 		IsRoot:  true,
 		Parent:  nil,
 	}
-	node.FindImports()
+	err := node.FindImports()
+	if err != nil {
+		log.Fatal(err)
+	}
 	graph := node.BuildGraph()
 	fmt.Println(graph)
 }

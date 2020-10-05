@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/anaskhan96/soup"
@@ -28,14 +27,12 @@ func (node *Node) FindImports() error {
 
 	pkgImportURL := pkgImportURL(node.PkgName)
 	imports, err := fetchImport(pkgImportURL, node.IsRoot)
-	// fmt.Println("imports:", imports)
 	if err != nil && node.IsRoot {
-		log.Fatal(fmt.Sprintf("Package %s not found", node.PkgName))
+		return errors.New("Package " + node.PkgName + " not found")
 	}
 
 	for key, val := range imports {
 		pkgName := key
-		// fmt.Println(key, val)
 		childNode := &Node{
 			PkgName:  pkgName,
 			IsRoot:   false,

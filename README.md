@@ -38,7 +38,7 @@ digraph G {
 ```
 
 You can view a output graph with tool [https://dreampuf.github.io/GraphvizOnline](https://dreampuf.github.io/GraphvizOnline)
-
+or [http://viz-js.com](http://viz-js.com)
 
 If you have the **graphviz** tools installed you can render it by piping the output to dot:
 
