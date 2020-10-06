@@ -68,6 +68,8 @@ func (node *Node) BuildGraph() string {
 	buf := bytes.NewBuffer([]byte{})
 	buf.WriteString("digraph G {\n")
 	buf.WriteString("	 rankdir=\"LR\";\n")
+	buf.WriteString("	 labelloc=\"t\";\n")
+	buf.WriteString("	 label=\"" + node.PkgName + "\";\n")
 	buf.WriteString("    pad=.15;\n")
 	buf.WriteString("    ratio=auto;\n")
 	buf.WriteString("    dpi=360;\n")
