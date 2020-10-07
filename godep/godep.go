@@ -123,8 +123,8 @@ func fetchImport(pkgImportURL string, isRoot bool) (map[string]bool, error) {
 	docs := root.FindAll("h2", "class", "Imports-heading")
 	for _, doc := range docs {
 		text := doc.Text()
-		standard := text == "Standard Library Imports"
-		if text == "Imports" || text == "Standard Library Imports" {
+		standard := text == "Standard library Imports"
+		if text == "Imports" || text == "Standard library Imports" {
 			temp := doc.FindNextElementSibling()
 			links := temp.FindAll("a")
 			for _, link := range links {
