@@ -76,6 +76,7 @@ func (node *Node) BuildGraph() string {
 	buf.WriteString("	 rankdir=\"LR\";\n")
 	buf.WriteString("	 labelloc=\"t\";\n")
 	buf.WriteString("	 label=\"Package: " + node.PkgName + "\";\n")
+	buf.WriteString("    pad=.5;\n")
 	buf.WriteString("    ratio=auto;\n")
 	buf.WriteString("    dpi=360;\n")
 	buf.WriteString("    graph [fontsize=16 fontname=\"Roboto Condensed, sans-serif\"];\n")
