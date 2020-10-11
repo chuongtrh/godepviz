@@ -79,7 +79,7 @@ func (node *Node) BuildGraph() string {
 	buf.WriteString("    ratio=auto;\n")
 	buf.WriteString("    dpi=360;\n")
 	buf.WriteString("    graph [fontsize=16 fontname=\"Roboto Condensed, sans-serif\"];\n")
-	buf.WriteString("    node [shape=box style=rounded fontname=\"Roboto Condensed, sans-serif\" fontsize=11 height=0 width=0 margin=.04];\n")
+	buf.WriteString("    node [shape=box style=rounded fontname=\"Roboto Condensed, sans-serif\" fontsize=11 height=0 width=0 margin=.08];\n")
 	buf.WriteString("    edge [fontsize=10, fontname=\"Roboto Condensed, sans-serif\" splines=\"polyline\"];\n")
 
 	node.graph(existEdges, &nodes, &edges)
