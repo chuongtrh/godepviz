@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sort"
 
 	"github.com/anaskhan96/soup"
 )
@@ -45,26 +46,31 @@ func (node *Node) FindImports() error {
 	return nil
 }
 
-func (node *Node) graph(buf *bytes.Buffer, edges map[string]bool) error {
+func (node *Node) graph(existEdges map[string]bool, nodes *[]string, edges *[]string) error {
 	for _, imp := range node.Imports {
 		edge := fmt.Sprintf("%s->%s", node.PkgName, imp.PkgName)
-		_, ok := edges[edge]
+		// Check existEdges
+		_, ok := existEdges[edge]
 		if !ok {
-			edges[edge] = true
-			buf.WriteString(fmt.Sprintf("	\"%s\" -> \"%s\";\n", node.PkgName, imp.PkgName))
-
+			existEdges[edge] = true
+			edge := fmt.Sprintf("	\"%s\" -> \"%s\";\n", node.PkgName, imp.PkgName)
+			*edges = append(*edges, edge)
 			if imp.Standard {
-				buf.WriteString(fmt.Sprintf(" 	\"%s\"  [style=filled,color=palegoldenrod];\n", imp.PkgName))
+				node := fmt.Sprintf(" 	\"%s\"  [style=filled,color=palegoldenrod];\n", imp.PkgName)
+				*nodes = append(*nodes, node)
 			}
 		}
-		imp.graph(buf, edges)
+		imp.graph(existEdges, nodes, edges)
 	}
 	return nil
 }
 
 // BuildGraph func
 func (node *Node) BuildGraph() string {
-	edges := make(map[string]bool)
+	existEdges := make(map[string]bool)
+	nodes := make([]string, 0)
+	edges := make([]string, 0)
+
 	buf := bytes.NewBuffer([]byte{})
 	buf.WriteString("digraph G {\n")
 	buf.WriteString("	 rankdir=\"LR\";\n")
@@ -76,9 +82,22 @@ func (node *Node) BuildGraph() string {
 	buf.WriteString("    node [shape=box style=rounded fontname=\"Roboto Condensed, sans-serif\" fontsize=11 height=0 width=0 margin=.04];\n")
 	buf.WriteString("    edge [fontsize=10, fontname=\"Roboto Condensed, sans-serif\" splines=\"polyline\"];\n")
 
-	node.graph(buf, edges)
+	node.graph(existEdges, &nodes, &edges)
+
+	sort.Strings(nodes)
+	sort.Strings(edges)
 
 	buf.WriteString(fmt.Sprintf(" 	\"%s\"  [style=filled,color=palegreen];\n", node.PkgName))
+
+	buf.WriteString("// Nodes")
+	for _, node := range nodes {
+		buf.WriteString(node)
+	}
+
+	buf.WriteString("// Edges")
+	for _, edge := range edges {
+		buf.WriteString(edge)
+	}
 
 	buf.WriteString("}")
 	return buf.String()
