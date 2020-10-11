@@ -69,11 +69,12 @@ func (node *Node) BuildGraph() string {
 	buf.WriteString("digraph G {\n")
 	buf.WriteString("	 rankdir=\"LR\";\n")
 	buf.WriteString("	 labelloc=\"t\";\n")
-	buf.WriteString("	 label=\"" + node.PkgName + "\";\n")
-	buf.WriteString("    pad=.15;\n")
+	buf.WriteString("	 label=\"Package: " + node.PkgName + "\";\n")
 	buf.WriteString("    ratio=auto;\n")
 	buf.WriteString("    dpi=360;\n")
-	buf.WriteString("    node [shape=box];\n")
+	buf.WriteString("    graph [fontsize=16 fontname=\"Roboto Condensed, sans-serif\"];\n")
+	buf.WriteString("    node [shape=box style=rounded fontname=\"Roboto Condensed, sans-serif\" fontsize=11 height=0 width=0 margin=.04];\n")
+	buf.WriteString("    edge [fontsize=10, fontname=\"Roboto Condensed, sans-serif\" splines=\"polyline\"];\n")
 
 	node.graph(buf, edges)
 
