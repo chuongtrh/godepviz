@@ -1,6 +1,5 @@
 # godepviz
-
-Visualize Go imports in Graphviz DOT format. 
+Visualize Go dependency in Graphviz DOT format. 
 
 Support visualize package from [https://pkg.go.dev](https://pkg.go.dev/)
 
