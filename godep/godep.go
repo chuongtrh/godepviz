@@ -7,22 +7,24 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sort"
+	"strings"
 
 	"github.com/anaskhan96/soup"
 )
 
 // Node struct
 type Node struct {
-	PkgName  string  `json:"pkgname"`
-	IsRoot   bool    `json:-`
-	Parent   *Node   `json:parent`
-	Standard bool    `json:standard`
-	Imports  []*Node `json:imports`
+	PkgName    string  `json:"pkgname"`
+	IsRoot     bool    `json:"-"`
+	Parent     *Node   `json:"parent"`
+	ImportType string  `json:"import_type"` // internal/external/standard
+	Imports    []*Node `json:"imports"`
 }
 
 // FindImports func
 func (node *Node) FindImports() error {
-	if node.Standard {
+
+	if node.ImportType == "standard" || node.ImportType == "external" {
 		return nil
 	}
 
@@ -35,10 +37,10 @@ func (node *Node) FindImports() error {
 	for key, val := range imports {
 		pkgName := key
 		childNode := &Node{
-			PkgName:  pkgName,
-			IsRoot:   false,
-			Parent:   node,
-			Standard: val,
+			PkgName:    pkgName,
+			IsRoot:     false,
+			Parent:     node,
+			ImportType: val,
 		}
 		childNode.FindImports()
 		node.Imports = append(node.Imports, childNode)
@@ -55,8 +57,14 @@ func (node *Node) graph(existEdges map[string]bool, nodes *[]string, edges *[]st
 			existEdges[edge] = true
 			edge := fmt.Sprintf("	\"%s\" -> \"%s\";\n", node.PkgName, imp.PkgName)
 			*edges = append(*edges, edge)
-			if imp.Standard {
-				node := fmt.Sprintf(" 	\"%s\"  [style=filled,color=palegoldenrod];\n", imp.PkgName)
+			if imp.ImportType == "standard" {
+				node := fmt.Sprintf(" 	\"%s\"  [style=filled,color=steelblue1];\n", imp.PkgName)
+				*nodes = append(*nodes, node)
+			} else if imp.ImportType == "internal" {
+				node := fmt.Sprintf(" 	\"%s\"  [style=filled,color=chocolate1];\n", imp.PkgName)
+				*nodes = append(*nodes, node)
+			} else {
+				node := fmt.Sprintf(" 	\"%s\"  [style=filled,color=hotpink];\n", imp.PkgName)
 				*nodes = append(*nodes, node)
 			}
 		}
@@ -112,8 +120,8 @@ func pkgImportURL(pkgName string) string {
 	return "https://pkg.go.dev/" + pkgName + "?tab=imports"
 }
 
-func fetchImport(pkgImportURL string, isRoot bool) (map[string]bool, error) {
-	imports := make(map[string]bool)
+func fetchImport(pkgImportURL string, isRoot bool) (map[string]string, error) {
+	imports := make(map[string]string)
 	var htmlContent string
 	if isRoot {
 		resp, err := http.Get(pkgImportURL)
@@ -128,7 +136,7 @@ func fetchImport(pkgImportURL string, isRoot bool) (map[string]bool, error) {
 			}
 			htmlContent = string(htmlDoc)
 		} else {
-			return imports, errors.New("Not Found")
+			return imports, errors.New("Not_Found")
 		}
 	} else {
 		resp, err := soup.Get(pkgImportURL)
@@ -144,12 +152,24 @@ func fetchImport(pkgImportURL string, isRoot bool) (map[string]bool, error) {
 	docs := root.FindAll("h2", "class", "Imports-heading")
 	for _, doc := range docs {
 		text := doc.Text()
-		standard := text == "Standard library Imports"
-		if text == "Imports" || text == "Standard library Imports" {
+
+		if strings.Contains(text, "Standard library Imports") {
 			temp := doc.FindNextElementSibling()
 			links := temp.FindAll("a")
 			for _, link := range links {
-				imports[link.FullText()] = standard
+				imports[link.FullText()] = "standard"
+			}
+		} else if strings.Contains(text, "Imports in module") {
+			temp := doc.FindNextElementSibling()
+			links := temp.FindAll("a")
+			for _, link := range links {
+				imports[link.FullText()] = "internal"
+			}
+		} else if strings.Contains(text, "Imports") {
+			temp := doc.FindNextElementSibling()
+			links := temp.FindAll("a")
+			for _, link := range links {
+				imports[link.FullText()] = "external"
 			}
 		}
 	}
