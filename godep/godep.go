@@ -151,21 +151,21 @@ func fetchImport(pkgImportURL string, isRoot bool) (map[string]string, error) {
 
 	docs := root.FindAll("h2", "class", "Imports-heading")
 	for _, doc := range docs {
-		text := doc.Text()
+		text := strings.ToLower(doc.Text())
 
-		if strings.Contains(text, "Standard library Imports") {
+		if strings.Contains(text, "standard library imports") {
 			temp := doc.FindNextElementSibling()
 			links := temp.FindAll("a")
 			for _, link := range links {
 				imports[link.FullText()] = "standard"
 			}
-		} else if strings.Contains(text, "Imports in module") {
+		} else if strings.Contains(text, "imports in module") {
 			temp := doc.FindNextElementSibling()
 			links := temp.FindAll("a")
 			for _, link := range links {
 				imports[link.FullText()] = "internal"
 			}
-		} else if strings.Contains(text, "Imports") {
+		} else if strings.Contains(text, "imports") {
 			temp := doc.FindNextElementSibling()
 			links := temp.FindAll("a")
 			for _, link := range links {

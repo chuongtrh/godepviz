@@ -1,8 +1,8 @@
 # godepviz
-Visualize Go dependency in Graphviz DOT format. 
+
+Visualize Go dependency in Graphviz DOT format.
 
 Support visualize package from [https://pkg.go.dev](https://pkg.go.dev/)
-
 
 ## Installation
 
@@ -15,7 +15,8 @@ $ go get github.com/chuongtrh/godepviz
 ```bash
 $ godepviz github.com/gofiber/fiber/v2
 ```
-The output is a graph in [Graphviz](http://graphviz.org/) dot format. 
+
+The output is a graph in [Graphviz](http://graphviz.org/) dot format.
 
 ```base
 digraph G {
@@ -46,15 +47,22 @@ $ godepviz github.com/gofiber/fiber/v2 | dot -Tpng -o godep.png
 ```
 
 Export SVG file with a large graph have many nodes of dependencies
+
 ```bash
 $ godepviz github.com/gofiber/fiber/v2 | dot -Gdpi=0 -T svg -o godep.svg
 ```
+
+Run from source code
+
+```bash
+$ go run main.go go.uber.org/zap | dot -Tpng -o godep.png
+```
+
 ## Example
 
 - Package `net/http`
 
 ![Example net/http](./screenshots/godep.png)
-
 
 - Package `github.com/labstack/echo/v4`
 
