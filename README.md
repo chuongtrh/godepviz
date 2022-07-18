@@ -71,3 +71,6 @@ $ go run main.go go.uber.org/zap | dot -Tpng -o godep.png
 - Package `github.com/gofiber/fiber/v2`
 
 ![Example github.com/gofiber/fiber/v2](./screenshots/godep.svg)
+
+## License
+MIT
